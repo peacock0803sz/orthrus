@@ -20,11 +20,18 @@
       perSystem = { config, self', inputs', pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
+            # Rust
             cargo
             rustc
             rust-analyzer
             rustfmt
             clippy
+
+            # Node.js
+            nodejs_22
+
+            # Tauri CLI
+            cargo-tauri
           ];
         };
       };

@@ -21,6 +21,9 @@ pub struct SphinxConfig {
     pub build_dir: String,
     #[serde(default)]
     pub server: ServerConfig,
+    /// sphinx-autobuild への追加引数
+    #[serde(default)]
+    pub extra_args: Vec<String>,
 }
 
 /// sphinx-autobuildサーバー設定
@@ -67,6 +70,7 @@ impl Default for SphinxConfig {
             source_dir: default_source_dir(),
             build_dir: default_build_dir(),
             server: ServerConfig::default(),
+            extra_args: Vec::new(),
         }
     }
 }
@@ -151,6 +155,8 @@ pub struct SphinxConfigOverride {
     pub build_dir: Option<String>,
     #[serde(default)]
     pub server: Option<ServerConfigOverride>,
+    #[serde(default)]
+    pub extra_args: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

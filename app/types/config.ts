@@ -8,6 +8,7 @@ export interface SphinxConfig {
   source_dir: string;
   build_dir: string;
   server: ServerConfig;
+  extra_args: string[];
 }
 
 /** Python環境設定 */

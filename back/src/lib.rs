@@ -76,6 +76,7 @@ fn start_sphinx(
     build_dir: String,
     python_path: String,
     port: u16,
+    extra_args: Vec<String>,
     manager: State<'_, SharedSphinxManager>,
     app_handle: tauri::AppHandle,
 ) -> Result<u16, String> {
@@ -87,6 +88,7 @@ fn start_sphinx(
         build_dir,
         python_path,
         port,
+        extra_args,
         app_handle,
     )
 }

@@ -43,6 +43,7 @@ impl SphinxManager {
         build_dir: String,
         python_path: String,
         requested_port: u16,
+        extra_args: Vec<String>,
         app_handle: AppHandle,
     ) -> Result<u16, String> {
         // 既存セッションがあれば停止
@@ -59,19 +60,24 @@ impl SphinxManager {
         let source_path = std::path::Path::new(&project_path).join(&source_dir);
         let build_path = std::path::Path::new(&project_path).join(&build_dir);
 
+        // 基本引数を構築
+        let mut args = vec![
+            "-m".to_string(),
+            "sphinx_autobuild".to_string(),
+            source_path.to_str().unwrap().to_string(),
+            build_path.to_str().unwrap().to_string(),
+            "--port".to_string(),
+            port.to_string(),
+            "--host".to_string(),
+            "127.0.0.1".to_string(),
+            "--open-browser=false".to_string(),
+        ];
+        // 追加引数をマージ
+        args.extend(extra_args);
+
         // sphinx-autobuildを起動
         let mut child = Command::new(&python_path)
-            .args([
-                "-m",
-                "sphinx_autobuild",
-                source_path.to_str().unwrap(),
-                build_path.to_str().unwrap(),
-                "--port",
-                &port.to_string(),
-                "--host",
-                "127.0.0.1",
-                "--open-browser=false",
-            ])
+            .args(&args)
             .current_dir(&project_path)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

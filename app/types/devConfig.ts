@@ -8,6 +8,7 @@ export type ConfigOverride = {
     server?: {
       port?: number;
     };
+    extra_args?: string[];
   };
   python?: {
     interpreter?: string;
@@ -41,6 +42,7 @@ export function mergeConfig(
       server: {
         port: override.sphinx?.server?.port ?? base.sphinx.server.port,
       },
+      extra_args: override.sphinx?.extra_args ?? base.sphinx.extra_args,
     },
     python: {
       interpreter: override.python?.interpreter ?? base.python.interpreter,

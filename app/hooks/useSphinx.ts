@@ -42,6 +42,7 @@ export function useSphinx({ sessionId, projectPath, config }: UseSphinxOptions):
         buildDir: config.sphinx.build_dir,
         pythonPath: config.python.interpreter,
         port: config.sphinx.server.port,
+        extraArgs: config.sphinx.extra_args,
       });
       setPort(assignedPort);
       setIsRunning(true);

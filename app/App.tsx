@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Terminal } from "./components/Terminal";
 import { Preview } from "./components/Preview";
 import { SplitView, Pane } from "./components/layout";
@@ -6,6 +6,7 @@ import { useProjectDialog } from "./hooks/useProjectDialog";
 import { useConfig } from "./hooks/useConfig";
 import { useSphinx } from "./hooks/useSphinx";
 import { useDevConfig } from "./hooks/useDevConfig";
+import { mergeConfig } from "./types/devConfig";
 import "./App.css";
 
 function App() {
@@ -34,6 +35,12 @@ function App() {
   }, [projectPath]);
   const { config, loading: configLoading } = useConfig();
 
+  // devConfigによる設定の上書きをマージ
+  const effectiveConfig = useMemo(() => {
+    if (!config) return null;
+    return mergeConfig(config, devConfig?.config);
+  }, [config, devConfig?.config]);
+
   // sphinx-autobuild
   const {
     previewUrl,
@@ -41,7 +48,7 @@ function App() {
     error: sphinxError,
     start: startSphinx,
     stop: stopSphinx,
-  } = useSphinx({ sessionId, projectPath, config });
+  } = useSphinx({ sessionId, projectPath, config: effectiveConfig });
 
   const handleExit = useCallback((_code: number) => {
     setExited(true);
@@ -59,12 +66,12 @@ function App() {
   // config読み込み完了時にsphinx-autobuildを自動起動
   const autoStartSphinx = devConfig?.autoStartSphinx ?? true;
   useEffect(() => {
-    if (config && projectPath && !sphinxRunning && autoStartSphinx) {
+    if (effectiveConfig && projectPath && !sphinxRunning && autoStartSphinx) {
       startSphinx();
     }
     // 初回起動時のみ実行、sphinxRunning/startSphinxの変更では再実行しない
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, projectPath, autoStartSphinx]);
+  }, [effectiveConfig, projectPath, autoStartSphinx]);
 
   return (
     <main className="h-screen w-screen flex flex-col bg-gray-900">
@@ -89,7 +96,7 @@ function App() {
               Stop Preview
             </button>
           ) : (
-            config && (
+            effectiveConfig && (
               <button
                 onClick={startSphinx}
                 className="px-2 py-0.5 bg-green-700 hover:bg-green-600 rounded text-xs transition-colors"

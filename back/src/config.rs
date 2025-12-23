@@ -127,6 +127,48 @@ pub struct DevConfig {
     /// sphinx-autobuildを自動起動するか
     #[serde(default = "default_auto_start_sphinx")]
     pub auto_start_sphinx: bool,
+    /// グローバル設定の上書き（部分的に指定可能）
+    #[serde(default)]
+    pub config: Option<ConfigOverride>,
+}
+
+/// 設定の部分上書き用構造体
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ConfigOverride {
+    #[serde(default)]
+    pub sphinx: Option<SphinxConfigOverride>,
+    #[serde(default)]
+    pub python: Option<PythonConfigOverride>,
+    #[serde(default)]
+    pub editor: Option<EditorConfigOverride>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SphinxConfigOverride {
+    #[serde(default)]
+    pub source_dir: Option<String>,
+    #[serde(default)]
+    pub build_dir: Option<String>,
+    #[serde(default)]
+    pub server: Option<ServerConfigOverride>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ServerConfigOverride {
+    #[serde(default)]
+    pub port: Option<u16>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct PythonConfigOverride {
+    #[serde(default)]
+    pub interpreter: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct EditorConfigOverride {
+    #[serde(default)]
+    pub command: Option<String>,
 }
 
 fn default_auto_start_sphinx() -> bool {

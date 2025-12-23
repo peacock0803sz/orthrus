@@ -1,7 +1,52 @@
+import type { ProjectConfig } from "./config";
+
+/** 設定の部分上書き用型 */
+export type ConfigOverride = {
+  sphinx?: {
+    source_dir?: string;
+    build_dir?: string;
+    server?: {
+      port?: number;
+    };
+  };
+  python?: {
+    interpreter?: string;
+  };
+  editor?: {
+    command?: string;
+  };
+};
+
 /** ローカル開発用設定 (.orthrus.dev.json) */
 export interface DevConfig {
   /** デフォルトで開くプロジェクトパス */
   projectPath?: string;
   /** sphinx-autobuildを自動起動するか */
   autoStartSphinx?: boolean;
+  /** グローバル設定の上書き */
+  config?: ConfigOverride;
+}
+
+/** ConfigOverrideをProjectConfigにマージする */
+export function mergeConfig(
+  base: ProjectConfig,
+  override: ConfigOverride | undefined,
+): ProjectConfig {
+  if (!override) return base;
+
+  return {
+    sphinx: {
+      source_dir: override.sphinx?.source_dir ?? base.sphinx.source_dir,
+      build_dir: override.sphinx?.build_dir ?? base.sphinx.build_dir,
+      server: {
+        port: override.sphinx?.server?.port ?? base.sphinx.server.port,
+      },
+    },
+    python: {
+      interpreter: override.python?.interpreter ?? base.python.interpreter,
+    },
+    editor: {
+      command: override.editor?.command ?? base.editor.command,
+    },
+  };
 }

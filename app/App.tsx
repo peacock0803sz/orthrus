@@ -8,11 +8,19 @@ import { useSphinx } from "./hooks/useSphinx";
 import "./App.css";
 
 function App() {
-  const [sessionId] = useState(() => crypto.randomUUID());
   const [exited, setExited] = useState(false);
 
   // プロジェクト選択
   const { projectPath, showDialog } = useProjectDialog();
+
+  // projectPathが変わったら新しいsessionIdを生成（ターミナル再起動）
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
+  useEffect(() => {
+    if (projectPath) {
+      setSessionId(crypto.randomUUID());
+      setExited(false);
+    }
+  }, [projectPath]);
   const { config, loading: configLoading } = useProjectConfig(projectPath);
 
   // sphinx-autobuild
@@ -90,11 +98,11 @@ function App() {
           }
           right={
             <Pane>
-              {!exited ? (
-                <Terminal sessionId={sessionId} cwd={projectPath ?? undefined} onExit={handleExit} />
+              {projectPath && !exited ? (
+                <Terminal sessionId={sessionId} cwd={projectPath} onExit={handleExit} />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
-                  Terminal session ended
+                  {exited ? "Terminal session ended" : "Select a project to start terminal"}
                 </div>
               )}
             </Pane>

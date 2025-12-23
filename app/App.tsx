@@ -48,6 +48,7 @@ function App() {
     error: sphinxError,
     start: startSphinx,
     stop: stopSphinx,
+    openInBrowser,
   } = useSphinx({ sessionId, projectPath, config: effectiveConfig });
 
   const handleExit = useCallback((_code: number) => {
@@ -89,12 +90,20 @@ function App() {
             <span className="text-red-400 text-xs truncate max-w-xs">{sphinxError}</span>
           )}
           {sphinxRunning ? (
-            <button
-              onClick={stopSphinx}
-              className="px-2 py-0.5 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors"
-            >
-              Stop Preview
-            </button>
+            <>
+              <button
+                onClick={openInBrowser}
+                className="px-2 py-0.5 bg-blue-700 hover:bg-blue-600 rounded text-xs transition-colors"
+              >
+                Open in Browser
+              </button>
+              <button
+                onClick={stopSphinx}
+                className="px-2 py-0.5 bg-red-700 hover:bg-red-600 rounded text-xs transition-colors"
+              >
+                Stop Preview
+              </button>
+            </>
           ) : (
             effectiveConfig && (
               <button

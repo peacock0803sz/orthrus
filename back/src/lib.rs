@@ -69,6 +69,7 @@ fn load_dev_config() -> Option<DevConfig> {
 
 /// sphinx-autobuildを起動
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 fn start_sphinx(
     session_id: String,
     project_path: String,

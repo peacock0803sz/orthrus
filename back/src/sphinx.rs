@@ -34,6 +34,7 @@ impl SphinxManager {
     }
 
     /// sphinx-autobuildを起動
+    #[allow(clippy::too_many_arguments)]
     pub fn start(
         &mut self,
         session_id: String,
@@ -85,17 +86,14 @@ impl SphinxManager {
         if let Some(stderr) = stderr {
             thread::spawn(move || {
                 let reader = BufReader::new(stderr);
-                for line in reader.lines() {
-                    if let Ok(line) = line {
-                        // ビルド完了を検出
-                        if line.contains("build succeeded") || line.contains("waiting for changes")
-                        {
-                            let _ = handle.emit("sphinx_built", &sid);
-                        }
-                        // エラーを検出
-                        if line.contains("ERROR") || line.contains("error:") {
-                            let _ = handle.emit("sphinx_error", (&sid, &line));
-                        }
+                for line in reader.lines().map_while(Result::ok) {
+                    // ビルド完了を検出
+                    if line.contains("build succeeded") || line.contains("waiting for changes") {
+                        let _ = handle.emit("sphinx_built", &sid);
+                    }
+                    // エラーを検出
+                    if line.contains("ERROR") || line.contains("error:") {
+                        let _ = handle.emit("sphinx_error", (&sid, &line));
                     }
                 }
             });
@@ -127,6 +125,7 @@ impl SphinxManager {
     }
 
     /// 実行中かどうか
+    #[allow(dead_code)]
     pub fn is_running(&self, session_id: &str) -> bool {
         self.processes.contains_key(session_id)
     }

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 /// プロジェクト設定全体
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub sphinx: SphinxConfig,
@@ -24,7 +24,7 @@ pub struct SphinxConfig {
 }
 
 /// sphinx-autobuildサーバー設定
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ServerConfig {
     #[serde(default)]
     pub port: u16, // 0 = 自動割り当て
@@ -61,16 +61,6 @@ fn default_editor() -> String {
     "nvim".to_string()
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            sphinx: SphinxConfig::default(),
-            python: PythonConfig::default(),
-            editor: EditorConfig::default(),
-        }
-    }
-}
-
 impl Default for SphinxConfig {
     fn default() -> Self {
         Self {
@@ -78,12 +68,6 @@ impl Default for SphinxConfig {
             build_dir: default_build_dir(),
             server: ServerConfig::default(),
         }
-    }
-}
-
-impl Default for ServerConfig {
-    fn default() -> Self {
-        Self { port: 0 }
     }
 }
 
@@ -139,9 +123,7 @@ impl DevConfig {
     /// アプリのルートから.orthrus.dev.jsonを読み込む
     pub fn load() -> Option<Self> {
         // カレントディレクトリから探す
-        let config_path = std::env::current_dir()
-            .ok()?
-            .join(".orthrus.dev.json");
+        let config_path = std::env::current_dir().ok()?.join(".orthrus.dev.json");
 
         if !config_path.exists() {
             return None;

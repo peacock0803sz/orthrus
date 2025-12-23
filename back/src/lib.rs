@@ -55,9 +55,8 @@ fn kill_terminal(
 }
 
 /// グローバル設定を読み込む
-/// 注: path引数は後方互換のため残しているが、XDG_CONFIG_HOMEから読み込む
 #[tauri::command]
-fn load_project_config(_path: String) -> Result<Config, String> {
+fn load_config() -> Result<Config, String> {
     Config::load()
 }
 
@@ -124,7 +123,7 @@ pub fn run() {
             pty_write,
             pty_resize,
             kill_terminal,
-            load_project_config,
+            load_config,
             load_dev_config,
             start_sphinx,
             stop_sphinx,

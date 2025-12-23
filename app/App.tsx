@@ -3,7 +3,7 @@ import { Terminal } from "./components/Terminal";
 import { Preview } from "./components/Preview";
 import { SplitView, Pane } from "./components/layout";
 import { useProjectDialog } from "./hooks/useProjectDialog";
-import { useProjectConfig } from "./hooks/useProjectConfig";
+import { useConfig } from "./hooks/useConfig";
 import { useSphinx } from "./hooks/useSphinx";
 import { useDevConfig } from "./hooks/useDevConfig";
 import "./App.css";
@@ -32,7 +32,7 @@ function App() {
       setExited(false);
     }
   }, [projectPath]);
-  const { config, loading: configLoading } = useProjectConfig(projectPath);
+  const { config, loading: configLoading } = useConfig();
 
   // sphinx-autobuild
   const {

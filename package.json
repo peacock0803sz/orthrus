@@ -10,8 +10,8 @@
     "tauri:dev": "tauri dev --config ./back/tauri.conf.json",
     "tauri:build": "tauri build --config ./back/tauri.conf.json",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint --fix .",
+    "lint": "oxlint app/",
+    "lint:fix": "oxlint --fix app/",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check ."
   },

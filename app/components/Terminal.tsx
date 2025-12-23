@@ -3,6 +3,7 @@ import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { logger } from "../utils/logger";
 import "@xterm/xterm/css/xterm.css";
 
 interface TerminalProps {
@@ -23,7 +24,7 @@ export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
       try {
         await invoke("pty_write", { sessionId, data });
       } catch (e) {
-        console.error("Failed to write to PTY:", e);
+        logger.error("Failed to write to PTY:", e);
       }
     },
     [sessionId]
@@ -45,7 +46,7 @@ export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
       try {
         await invoke("pty_resize", { sessionId, cols, rows });
       } catch (e) {
-        console.error("Failed to resize PTY:", e);
+        logger.error("Failed to resize PTY:", e);
       }
     }, 100);
   }, [sessionId]);
@@ -81,7 +82,7 @@ export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
     // PTYセッション開始
     const { cols, rows } = terminal;
     invoke("spawn_terminal", { sessionId, cwd, cols, rows }).catch((e) => {
-      console.error("Failed to spawn terminal:", e);
+      logger.error("Failed to spawn terminal:", e);
       terminal.write(`\r\nError: ${e}\r\n`);
     });
 
@@ -123,7 +124,7 @@ export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
       terminal.dispose();
 
       // PTYセッション終了
-      invoke("kill_terminal", { sessionId }).catch(console.error);
+      invoke("kill_terminal", { sessionId }).catch(logger.error);
     };
     // cwdは初回spawnのみ使用、変更時の再spawnは不要
     // eslint-disable-next-line react-hooks/exhaustive-deps

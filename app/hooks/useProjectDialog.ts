@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { logger } from "../utils/logger";
 
 interface UseProjectDialogResult {
   projectPath: string | null;
@@ -29,7 +30,7 @@ export function useProjectDialog(): UseProjectDialogResult {
 
       return null;
     } catch (e) {
-      console.error("Failed to open folder dialog:", e);
+      logger.error("Failed to open folder dialog:", e);
       return null;
     }
   }, []);

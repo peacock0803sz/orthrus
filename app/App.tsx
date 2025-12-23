@@ -43,8 +43,7 @@ function App() {
     stop: stopSphinx,
   } = useSphinx({ sessionId, projectPath, config });
 
-  const handleExit = useCallback((code: number) => {
-    console.log("Terminal exited with code:", code);
+  const handleExit = useCallback((_code: number) => {
     setExited(true);
   }, []);
 
@@ -53,6 +52,8 @@ function App() {
     if (devConfigLoaded && !projectPath && !devConfig?.projectPath) {
       showDialog();
     }
+    // showDialogは安定した参照なので依存配列から除外
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devConfigLoaded, projectPath, devConfig]);
 
   // config読み込み完了時にsphinx-autobuildを自動起動
@@ -61,6 +62,8 @@ function App() {
     if (config && projectPath && !sphinxRunning && autoStartSphinx) {
       startSphinx();
     }
+    // 初回起動時のみ実行、sphinxRunning/startSphinxの変更では再実行しない
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, projectPath, autoStartSphinx]);
 
   return (

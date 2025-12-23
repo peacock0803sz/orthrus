@@ -12,6 +12,5 @@
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     "import/no-cycle": "error"
-  },
-  "ignorePatterns": ["dist", "node_modules", "back/target", ".direnv"]
+  }
 }

@@ -1,0 +1,4 @@
+{
+  "projectPath": "/path/to/your/sphinx/project",
+  "autoStartSphinx": true
+}

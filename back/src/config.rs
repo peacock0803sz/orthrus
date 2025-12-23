@@ -120,6 +120,38 @@ impl Config {
     }
 }
 
+/// ローカル開発用設定
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DevConfig {
+    /// デフォルトで開くプロジェクトパス
+    #[serde(default)]
+    pub project_path: Option<String>,
+    /// sphinx-autobuildを自動起動するか
+    #[serde(default = "default_auto_start_sphinx")]
+    pub auto_start_sphinx: bool,
+}
+
+fn default_auto_start_sphinx() -> bool {
+    true
+}
+
+impl DevConfig {
+    /// アプリのルートから.orthrus.dev.jsonを読み込む
+    pub fn load() -> Option<Self> {
+        // カレントディレクトリから探す
+        let config_path = std::env::current_dir()
+            .ok()?
+            .join(".orthrus.dev.json");
+
+        if !config_path.exists() {
+            return None;
+        }
+
+        let content = std::fs::read_to_string(&config_path).ok()?;
+        serde_json::from_str(&content).ok()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

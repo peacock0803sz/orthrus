@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 interface UseProjectDialogResult {
   projectPath: string | null;
+  setProjectPath: (path: string | null) => void;
   showDialog: () => Promise<string | null>;
   clearProject: () => void;
 }
@@ -37,5 +38,5 @@ export function useProjectDialog(): UseProjectDialogResult {
     setProjectPath(null);
   }, []);
 
-  return { projectPath, showDialog, clearProject };
+  return { projectPath, setProjectPath, showDialog, clearProject };
 }

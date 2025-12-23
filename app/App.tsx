@@ -5,13 +5,24 @@ import { SplitView, Pane } from "./components/layout";
 import { useProjectDialog } from "./hooks/useProjectDialog";
 import { useProjectConfig } from "./hooks/useProjectConfig";
 import { useSphinx } from "./hooks/useSphinx";
+import { useDevConfig } from "./hooks/useDevConfig";
 import "./App.css";
 
 function App() {
   const [exited, setExited] = useState(false);
 
+  // ローカル開発用設定
+  const { devConfig, loaded: devConfigLoaded } = useDevConfig();
+
   // プロジェクト選択
-  const { projectPath, showDialog } = useProjectDialog();
+  const { projectPath, setProjectPath, showDialog } = useProjectDialog();
+
+  // dev configからプロジェクトパスを設定
+  useEffect(() => {
+    if (devConfigLoaded && devConfig?.projectPath && !projectPath) {
+      setProjectPath(devConfig.projectPath);
+    }
+  }, [devConfigLoaded, devConfig, projectPath, setProjectPath]);
 
   // projectPathが変わったら新しいsessionIdを生成（ターミナル再起動）
   const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
@@ -37,19 +48,20 @@ function App() {
     setExited(true);
   }, []);
 
-  // 起動時にプロジェクト選択ダイアログを表示
+  // 起動時にプロジェクト選択ダイアログを表示（dev configが無い場合のみ）
   useEffect(() => {
-    if (!projectPath) {
+    if (devConfigLoaded && !projectPath && !devConfig?.projectPath) {
       showDialog();
     }
-  }, []);
+  }, [devConfigLoaded, projectPath, devConfig]);
 
   // config読み込み完了時にsphinx-autobuildを自動起動
+  const autoStartSphinx = devConfig?.autoStartSphinx ?? true;
   useEffect(() => {
-    if (config && projectPath && !sphinxRunning) {
+    if (config && projectPath && !sphinxRunning && autoStartSphinx) {
       startSphinx();
     }
-  }, [config, projectPath]);
+  }, [config, projectPath, autoStartSphinx]);
 
   return (
     <main className="h-screen w-screen flex flex-col bg-gray-900">

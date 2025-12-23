@@ -2,7 +2,7 @@ mod config;
 mod sphinx;
 mod terminal;
 
-use config::Config;
+use config::{Config, DevConfig};
 use sphinx::{create_sphinx_manager, SharedSphinxManager};
 use tauri::State;
 use terminal::{create_terminal_manager, SharedTerminalManager};
@@ -59,6 +59,12 @@ fn kill_terminal(
 fn load_project_config(path: String) -> Result<Config, String> {
     let project_path = std::path::Path::new(&path);
     Config::load(project_path)
+}
+
+/// ローカル開発用設定を読み込む
+#[tauri::command]
+fn load_dev_config() -> Option<DevConfig> {
+    DevConfig::load()
 }
 
 /// sphinx-autobuildを起動
@@ -118,6 +124,7 @@ pub fn run() {
             pty_resize,
             kill_terminal,
             load_project_config,
+            load_dev_config,
             start_sphinx,
             stop_sphinx,
             get_sphinx_port,

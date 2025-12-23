@@ -1,22 +1,24 @@
-use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
 /// PTYセッションを管理する構造体
 pub struct PtySession {
     writer: Box<dyn Write + Send>,
     size: PtySize,
+    #[allow(dead_code)]
+    child: Box<dyn Child + Send + Sync>,
+    #[allow(dead_code)]
+    master: Box<dyn MasterPty + Send>,
 }
 
 /// 全PTYセッションを管理するマネージャー
 pub struct TerminalManager {
     sessions: HashMap<String, PtySession>,
-    /// 出力バッチング用のバッファ（16-33ms周期で送信）
-    batch_interval_ms: u64,
 }
 
 impl Default for TerminalManager {
@@ -29,7 +31,6 @@ impl TerminalManager {
     pub fn new() -> Self {
         Self {
             sessions: HashMap::new(),
-            batch_interval_ms: 16, // 約60fps
         }
     }
 
@@ -42,6 +43,11 @@ impl TerminalManager {
         rows: u16,
         app_handle: AppHandle,
     ) -> Result<(), String> {
+        // 既に同じセッションが存在する場合はスキップ（React StrictMode対策）
+        if self.sessions.contains_key(&session_id) {
+            return Ok(());
+        }
+
         let pty_system = native_pty_system();
 
         let size = PtySize {
@@ -55,56 +61,64 @@ impl TerminalManager {
             .openpty(size)
             .map_err(|e| format!("Failed to open pty: {}", e))?;
 
-        let mut cmd = CommandBuilder::new_default_prog();
-        if let Some(dir) = cwd {
+        // zshをログインシェルとして起動
+        let shell_path = "/bin/zsh";
+        let mut cmd = CommandBuilder::new(shell_path);
+        cmd.arg("-l");
+
+        if let Some(ref dir) = cwd {
             cmd.cwd(dir);
         }
 
-        pair.slave
+        cmd.env("TERM", "xterm-256color");
+        cmd.env("COLORTERM", "truecolor");
+        cmd.env("SHELL", shell_path);
+
+        let child = pair
+            .slave
             .spawn_command(cmd)
             .map_err(|e| format!("Failed to spawn command: {}", e))?;
 
-        let writer = pair
-            .master
-            .take_writer()
-            .map_err(|e| format!("Failed to take writer: {}", e))?;
+        // macOS: spawn後の短いスリープでレースコンディション回避
+        thread::sleep(Duration::from_millis(50));
+
+        // slaveをdrop（親で保持するとEOF問題が発生）
+        drop(pair.slave);
 
         let mut reader = pair
             .master
             .try_clone_reader()
             .map_err(|e| format!("Failed to clone reader: {}", e))?;
 
-        let session = PtySession { writer, size };
+        let writer = pair
+            .master
+            .take_writer()
+            .map_err(|e| format!("Failed to take writer: {}", e))?;
+
+        let session = PtySession {
+            writer,
+            size,
+            child,
+            master: pair.master,
+        };
         self.sessions.insert(session_id.clone(), session);
 
-        // 出力を読み取るスレッドを起動（バッチング付き）
+        // 出力読み取りスレッド（即時送信）
         let sid = session_id.clone();
-        let batch_interval = Duration::from_millis(self.batch_interval_ms);
 
         thread::spawn(move || {
             let mut buffer = [0u8; 4096];
-            let mut batch_buffer = Vec::new();
-            let mut last_emit = Instant::now();
 
             loop {
                 match reader.read(&mut buffer) {
                     Ok(0) => {
-                        // EOF - プロセス終了
                         let _ = app_handle.emit("pty_exit", (&sid, 0));
                         break;
                     }
                     Ok(n) => {
-                        batch_buffer.extend_from_slice(&buffer[..n]);
-
-                        // バッチング: 一定間隔で送信
-                        if last_emit.elapsed() >= batch_interval {
-                            if !batch_buffer.is_empty() {
-                                let data = String::from_utf8_lossy(&batch_buffer).to_string();
-                                let _ = app_handle.emit("pty_data", (&sid, data));
-                                batch_buffer.clear();
-                            }
-                            last_emit = Instant::now();
-                        }
+                        // 読み取ったデータを即座に送信
+                        let data = String::from_utf8_lossy(&buffer[..n]).to_string();
+                        let _ = app_handle.emit("pty_data", (&sid, data));
                     }
                     Err(_) => {
                         let _ = app_handle.emit("pty_exit", (&sid, 1));
@@ -137,7 +151,7 @@ impl TerminalManager {
         Ok(())
     }
 
-    /// PTYのサイズを変更（resize間引き用のラッパーはフロント側で実装）
+    /// PTYのサイズを変更
     pub fn resize(&mut self, session_id: &str, cols: u16, rows: u16) -> Result<(), String> {
         let session = self
             .sessions
@@ -151,7 +165,7 @@ impl TerminalManager {
             pixel_height: 0,
         };
 
-        // Note: portable-ptyではresizeはPtyPairで行う必要がある
+        // Note: portable-ptyではresizeはmasterから行う必要がある
         // 現在の実装ではsizeを保存するのみ
 
         Ok(())
@@ -180,7 +194,6 @@ mod tests {
     #[test]
     fn test_terminal_manager_creation() {
         let manager = TerminalManager::new();
-        assert_eq!(manager.batch_interval_ms, 16);
         assert!(manager.sessions.is_empty());
     }
 

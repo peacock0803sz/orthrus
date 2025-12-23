@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
-import { CanvasAddon } from "@xterm/addon-canvas";
 import { FitAddon } from "@xterm/addon-fit";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
@@ -69,14 +68,6 @@ export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
 
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
-
-    // CanvasAddon（WebGLより安定、WKWebView対応）
-    try {
-      const canvasAddon = new CanvasAddon();
-      terminal.loadAddon(canvasAddon);
-    } catch (e) {
-      console.warn("CanvasAddon failed, using DOM renderer:", e);
-    }
 
     terminal.open(containerRef.current);
     fitAddon.fit();

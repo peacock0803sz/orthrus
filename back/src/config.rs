@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::path::PathBuf;
 
 /// プロジェクト設定全体
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -88,10 +88,10 @@ impl Default for EditorConfig {
 }
 
 impl Config {
-    /// プロジェクトパスから設定を読み込む
-    /// .orthrus.tomlが存在しない場合はデフォルト値を返す
-    pub fn load(project_path: &Path) -> Result<Self, String> {
-        let config_path = project_path.join(".orthrus.toml");
+    /// XDG_CONFIG_HOME/orthrus/config.toml から設定を読み込む
+    /// 設定ファイルが存在しない場合はデフォルト値を返す
+    pub fn load() -> Result<Self, String> {
+        let config_path = Self::config_path();
 
         if !config_path.exists() {
             return Ok(Config::default());
@@ -101,6 +101,20 @@ impl Config {
             .map_err(|e| format!("設定ファイルの読み込みに失敗: {}", e))?;
 
         toml::from_str(&content).map_err(|e| format!("設定ファイルのパースに失敗: {}", e))
+    }
+
+    /// 設定ファイルのパスを取得
+    /// XDG_CONFIG_HOME/orthrus/config.toml または ~/.config/orthrus/config.toml
+    fn config_path() -> PathBuf {
+        let config_dir = std::env::var("XDG_CONFIG_HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| {
+                dirs::home_dir()
+                    .unwrap_or_default()
+                    .join(".config")
+            });
+
+        config_dir.join("orthrus").join("config.toml")
     }
 }
 
@@ -186,9 +200,11 @@ mod tests {
     }
 
     #[test]
-    fn test_load_nonexistent_returns_default() {
-        let path = Path::new("/nonexistent/path");
-        let config = Config::load(path).unwrap();
+    fn test_load_returns_default_when_no_config() {
+        // XDG_CONFIG_HOMEを存在しないパスに設定してテスト
+        std::env::set_var("XDG_CONFIG_HOME", "/nonexistent/path/for/test");
+        let config = Config::load().unwrap();
         assert_eq!(config.sphinx.source_dir, "docs");
+        std::env::remove_var("XDG_CONFIG_HOME");
     }
 }

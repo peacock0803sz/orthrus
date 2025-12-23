@@ -54,11 +54,11 @@ fn kill_terminal(
     inner.kill(&session_id)
 }
 
-/// プロジェクト設定を読み込む
+/// グローバル設定を読み込む
+/// 注: path引数は後方互換のため残しているが、XDG_CONFIG_HOMEから読み込む
 #[tauri::command]
-fn load_project_config(path: String) -> Result<Config, String> {
-    let project_path = std::path::Path::new(&path);
-    Config::load(project_path)
+fn load_project_config(_path: String) -> Result<Config, String> {
+    Config::load()
 }
 
 /// ローカル開発用設定を読み込む

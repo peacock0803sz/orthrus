@@ -2389,6 +2389,7 @@ dependencies = [
 name = "orthrus"
 version = "0.1.0"
 dependencies = [
+ "dirs",
  "portable-pty",
  "rand 0.9.2",
  "serde",

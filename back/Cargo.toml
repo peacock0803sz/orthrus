@@ -29,3 +29,5 @@ tokio = { version = "1", features = ["sync", "time"] }
 # Random for nonce generation
 rand = "0.9"
 
+# XDG directory support
+dirs = "6"

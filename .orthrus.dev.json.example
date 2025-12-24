@@ -1,6 +1,6 @@
 {
-  "projectPath": "/path/to/your/sphinx/project",
-  "autoStartSphinx": true,
+  "project_path": "/path/to/your/sphinx/project",
+  "auto_start_sphinx": true,
   "config": {
     "sphinx": {
       "source_dir": "docs",

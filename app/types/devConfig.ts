@@ -24,9 +24,9 @@ export type ConfigOverride = {
 /** ローカル開発用設定 (.orthrus.dev.json) */
 export interface DevConfig {
   /** デフォルトで開くプロジェクトパス */
-  projectPath?: string;
+  project_path?: string;
   /** sphinx-autobuildを自動起動するか */
-  autoStartSphinx?: boolean;
+  auto_start_sphinx?: boolean;
   /** グローバル設定の上書き */
   config?: ConfigOverride;
 }

@@ -31,8 +31,8 @@ describe("useDevConfig", () => {
 
   it("should load dev config successfully", async () => {
     const mockConfig = {
-      projectPath: "/path/to/project",
-      autoStartSphinx: true,
+      project_path: "/path/to/project",
+      auto_start_sphinx: true,
     };
     vi.mocked(invoke).mockResolvedValue(mockConfig);
 

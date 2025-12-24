@@ -20,8 +20,8 @@ function App() {
 
   // dev configからプロジェクトパスを設定
   useEffect(() => {
-    if (devConfigLoaded && devConfig?.projectPath && !projectPath) {
-      setProjectPath(devConfig.projectPath);
+    if (devConfigLoaded && devConfig?.project_path && !projectPath) {
+      setProjectPath(devConfig.project_path);
     }
   }, [devConfigLoaded, devConfig, projectPath, setProjectPath]);
 
@@ -57,7 +57,7 @@ function App() {
 
   // 起動時にプロジェクト選択ダイアログを表示（dev configが無い場合のみ）
   useEffect(() => {
-    if (devConfigLoaded && !projectPath && !devConfig?.projectPath) {
+    if (devConfigLoaded && !projectPath && !devConfig?.project_path) {
       showDialog();
     }
     // showDialogは安定した参照なので依存配列から除外
@@ -65,7 +65,7 @@ function App() {
   }, [devConfigLoaded, projectPath, devConfig]);
 
   // config読み込み完了時にsphinx-autobuildを自動起動
-  const autoStartSphinx = devConfig?.autoStartSphinx ?? true;
+  const autoStartSphinx = devConfig?.auto_start_sphinx ?? true;
   useEffect(() => {
     if (effectiveConfig && projectPath && !sphinxRunning && autoStartSphinx) {
       startSphinx();

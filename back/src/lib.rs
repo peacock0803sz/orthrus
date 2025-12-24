@@ -1,3 +1,4 @@
+mod color_scheme;
 mod config;
 mod sphinx;
 mod terminal;
@@ -59,7 +60,13 @@ fn kill_terminal(
 /// グローバル設定を読み込む
 #[tauri::command]
 fn load_config() -> Result<Config, String> {
-    Config::load()
+    let mut config = Config::load()?;
+    // テーマファイルがある場合は解決（設定ファイルの場所を基準に）
+    let config_dir = dirs::config_dir()
+        .unwrap_or_default()
+        .join("orthrus");
+    config.terminal.resolve_color_scheme(Some(&config_dir));
+    Ok(config)
 }
 
 /// ローカル開発用設定を読み込む

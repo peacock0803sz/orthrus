@@ -1,3 +1,4 @@
+use crate::color_scheme::{load_theme_file, ColorScheme};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -61,6 +62,12 @@ pub struct TerminalConfig {
     /// フォントサイズ
     #[serde(default)]
     pub font_size: Option<u16>,
+    /// テーマファイルパス（Alacritty/WindowsTerminal/iTerm2形式）
+    #[serde(default)]
+    pub theme_file: Option<String>,
+    /// インラインカラースキーム（theme_fileより優先）
+    #[serde(default)]
+    pub color_scheme: Option<ColorScheme>,
 }
 
 // デフォルト値関数
@@ -103,6 +110,36 @@ impl Default for EditorConfig {
     fn default() -> Self {
         Self {
             command: default_editor(),
+        }
+    }
+}
+
+impl TerminalConfig {
+    /// theme_fileからカラースキームを解決
+    /// color_schemeが設定済みの場合はそのまま、
+    /// theme_fileが設定されている場合はファイルを読み込んでcolor_schemeに変換
+    pub fn resolve_color_scheme(&mut self, base_path: Option<&std::path::Path>) {
+        // color_schemeが既に設定されている場合はそのまま
+        if self.color_scheme.is_some() {
+            return;
+        }
+
+        // theme_fileが設定されている場合はファイルを読み込む
+        if let Some(ref theme_file) = self.theme_file {
+            let theme_path = if let Some(base) = base_path {
+                base.join(theme_file)
+            } else {
+                PathBuf::from(theme_file)
+            };
+
+            match load_theme_file(&theme_path) {
+                Ok(scheme) => {
+                    self.color_scheme = Some(scheme);
+                }
+                Err(e) => {
+                    eprintln!("テーマファイル読み込みエラー: {}", e);
+                }
+            }
         }
     }
 }
@@ -199,6 +236,10 @@ pub struct TerminalConfigOverride {
     pub font_family: Option<String>,
     #[serde(default)]
     pub font_size: Option<u16>,
+    #[serde(default)]
+    pub theme_file: Option<String>,
+    #[serde(default)]
+    pub color_scheme: Option<ColorScheme>,
 }
 
 fn default_auto_start_sphinx() -> bool {

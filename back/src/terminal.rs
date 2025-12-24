@@ -6,6 +6,23 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
+/// シェルパスを決定する
+/// 優先順位: 設定値 > $SHELL環境変数 > /bin/sh
+fn detect_shell(config_shell: Option<&str>) -> String {
+    // 設定で指定されていれば優先
+    if let Some(shell) = config_shell {
+        return shell.to_string();
+    }
+
+    // $SHELL 環境変数
+    if let Ok(shell) = std::env::var("SHELL") {
+        return shell;
+    }
+
+    // フォールバック
+    "/bin/sh".to_string()
+}
+
 /// PTYセッションを管理する構造体
 pub struct PtySession {
     writer: Box<dyn Write + Send>,
@@ -39,6 +56,7 @@ impl TerminalManager {
         &mut self,
         session_id: String,
         cwd: Option<String>,
+        shell: Option<String>,
         cols: u16,
         rows: u16,
         app_handle: AppHandle,
@@ -61,9 +79,9 @@ impl TerminalManager {
             .openpty(size)
             .map_err(|e| format!("Failed to open pty: {}", e))?;
 
-        // zshをログインシェルとして起動
-        let shell_path = "/bin/zsh";
-        let mut cmd = CommandBuilder::new(shell_path);
+        // シェルを検出してログインシェルとして起動
+        let shell_path = detect_shell(shell.as_deref());
+        let mut cmd = CommandBuilder::new(&shell_path);
         cmd.arg("-l");
 
         if let Some(ref dir) = cwd {
@@ -72,7 +90,7 @@ impl TerminalManager {
 
         cmd.env("TERM", "xterm-256color");
         cmd.env("COLORTERM", "truecolor");
-        cmd.env("SHELL", shell_path);
+        cmd.env("SHELL", &shell_path);
 
         let child = pair
             .slave
@@ -217,5 +235,41 @@ mod tests {
         let mut manager = TerminalManager::new();
         let result = manager.kill("nonexistent");
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_detect_shell_with_config() {
+        // 設定値が優先される
+        let shell = detect_shell(Some("/opt/homebrew/bin/fish"));
+        assert_eq!(shell, "/opt/homebrew/bin/fish");
+    }
+
+    #[test]
+    fn test_detect_shell_from_env() {
+        // 設定がない場合は $SHELL を使用
+        let original = std::env::var("SHELL").ok();
+        std::env::set_var("SHELL", "/usr/local/bin/zsh");
+        let shell = detect_shell(None);
+        assert_eq!(shell, "/usr/local/bin/zsh");
+
+        // 環境変数を元に戻す
+        match original {
+            Some(v) => std::env::set_var("SHELL", v),
+            None => std::env::remove_var("SHELL"),
+        }
+    }
+
+    #[test]
+    fn test_detect_shell_fallback() {
+        // $SHELL がない場合は /bin/sh
+        let original = std::env::var("SHELL").ok();
+        std::env::remove_var("SHELL");
+        let shell = detect_shell(None);
+        assert_eq!(shell, "/bin/sh");
+
+        // 環境変数を元に戻す
+        if let Some(v) = original {
+            std::env::set_var("SHELL", v);
+        }
     }
 }

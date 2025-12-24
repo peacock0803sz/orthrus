@@ -13,13 +13,14 @@ use terminal::{create_terminal_manager, SharedTerminalManager};
 fn spawn_terminal(
     session_id: String,
     cwd: Option<String>,
+    shell: Option<String>,
     cols: u16,
     rows: u16,
     manager: State<'_, SharedTerminalManager>,
     app_handle: tauri::AppHandle,
 ) -> Result<(), String> {
     let mut inner = manager.lock().map_err(|e| e.to_string())?;
-    inner.spawn(session_id, cwd, cols, rows, app_handle)
+    inner.spawn(session_id, cwd, shell, cols, rows, app_handle)
 }
 
 /// PTYにデータを書き込む

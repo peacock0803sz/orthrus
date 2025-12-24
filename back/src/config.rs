@@ -329,4 +329,45 @@ mod tests {
             "shell should be /bin/zsh"
         );
     }
+
+    #[test]
+    fn test_parse_terminal_font_config_toml() {
+        // TOMLでフォント設定がパースできるか確認
+        let toml_str = r#"
+            [sphinx]
+            source_dir = "docs"
+
+            [terminal]
+            shell = "/bin/zsh"
+            font_family = "JetBrains Mono"
+            font_size = 16
+        "#;
+        let config: Config = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.terminal.shell, Some("/bin/zsh".to_string()));
+        assert_eq!(config.terminal.font_family, Some("JetBrains Mono".to_string()));
+        assert_eq!(config.terminal.font_size, Some(16));
+    }
+
+    #[test]
+    fn test_parse_terminal_font_config_json() {
+        // JSONでフォント設定がパースできるか確認
+        let json_str = r#"
+        {
+            "project_path": "/path/to/project",
+            "config": {
+                "terminal": {
+                    "shell": "/bin/zsh",
+                    "font_family": "Fira Code",
+                    "font_size": 18
+                }
+            }
+        }
+        "#;
+        let dev_config: DevConfig = serde_json::from_str(json_str).unwrap();
+        let config = dev_config.config.unwrap();
+        let terminal = config.terminal.unwrap();
+        assert_eq!(terminal.shell, Some("/bin/zsh".to_string()));
+        assert_eq!(terminal.font_family, Some("Fira Code".to_string()));
+        assert_eq!(terminal.font_size, Some(18));
+    }
 }

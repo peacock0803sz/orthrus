@@ -131,13 +131,13 @@ function App() {
           }
           right={
             <Pane>
-              {projectPath && !exited ? (
+              {projectPath && effectiveConfig && !exited ? (
                 <Terminal
                   sessionId={sessionId}
                   cwd={projectPath}
-                  shell={effectiveConfig?.terminal.shell}
-                  fontFamily={effectiveConfig?.terminal.font_family}
-                  fontSize={effectiveConfig?.terminal.font_size}
+                  shell={effectiveConfig.terminal.shell}
+                  fontFamily={effectiveConfig.terminal.font_family}
+                  fontSize={effectiveConfig.terminal.font_size}
                   onExit={handleExit}
                 />
               ) : (

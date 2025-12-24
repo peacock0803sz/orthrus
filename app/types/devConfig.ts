@@ -1,4 +1,4 @@
-import type { ProjectConfig } from "./config";
+import type { ProjectConfig, ColorScheme } from "./config";
 
 /** 設定の部分上書き用型 */
 export type ConfigOverride = {
@@ -20,6 +20,8 @@ export type ConfigOverride = {
     shell?: string;
     font_family?: string;
     font_size?: number;
+    theme_file?: string;
+    color_scheme?: ColorScheme;
   };
 };
 
@@ -59,6 +61,8 @@ export function mergeConfig(
       shell: override.terminal?.shell ?? base.terminal.shell,
       font_family: override.terminal?.font_family ?? base.terminal.font_family,
       font_size: override.terminal?.font_size ?? base.terminal.font_size,
+      theme_file: override.terminal?.theme_file ?? base.terminal.theme_file,
+      color_scheme: override.terminal?.color_scheme ?? base.terminal.color_scheme,
     },
   };
 }

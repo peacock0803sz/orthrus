@@ -9,6 +9,9 @@
     },
     "python": {
       "interpreter": ".venv/bin/python"
+    },
+    "terminal": {
+      "shell": "/opt/homebrew/bin/fish"
     }
   }
 }

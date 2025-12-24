@@ -22,3 +22,8 @@ interpreter = "python"
 [editor]
 # External editor command
 command = "nvim"
+
+[terminal]
+# Shell path for terminal (optional, defaults to $SHELL)
+# Example: "/opt/homebrew/bin/fish" or "/bin/zsh"
+# shell = "/opt/homebrew/bin/fish"

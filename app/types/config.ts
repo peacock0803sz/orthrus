@@ -21,9 +21,15 @@ export interface EditorConfig {
   command: string;
 }
 
+/** ターミナル設定 */
+export interface TerminalConfig {
+  shell?: string;
+}
+
 /** プロジェクト設定全体 */
 export interface ProjectConfig {
   sphinx: SphinxConfig;
   python: PythonConfig;
   editor: EditorConfig;
+  terminal: TerminalConfig;
 }

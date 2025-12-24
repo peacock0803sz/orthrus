@@ -16,6 +16,9 @@ export type ConfigOverride = {
   editor?: {
     command?: string;
   };
+  terminal?: {
+    shell?: string;
+  };
 };
 
 /** ローカル開発用設定 (.orthrus.dev.json) */
@@ -31,7 +34,7 @@ export interface DevConfig {
 /** ConfigOverrideをProjectConfigにマージする */
 export function mergeConfig(
   base: ProjectConfig,
-  override: ConfigOverride | undefined,
+  override: ConfigOverride | undefined
 ): ProjectConfig {
   if (!override) return base;
 
@@ -49,6 +52,9 @@ export function mergeConfig(
     },
     editor: {
       command: override.editor?.command ?? base.editor.command,
+    },
+    terminal: {
+      shell: override.terminal?.shell ?? base.terminal.shell,
     },
   };
 }

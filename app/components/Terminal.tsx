@@ -9,10 +9,11 @@ import "@xterm/xterm/css/xterm.css";
 interface TerminalProps {
   sessionId: string;
   cwd?: string;
+  shell?: string;
   onExit?: (code: number) => void;
 }
 
-export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
+export function Terminal({ sessionId, cwd, shell, onExit }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -81,7 +82,7 @@ export function Terminal({ sessionId, cwd, onExit }: TerminalProps) {
 
     // PTYセッション開始
     const { cols, rows } = terminal;
-    invoke("spawn_terminal", { sessionId, cwd, cols, rows }).catch((e) => {
+    invoke("spawn_terminal", { sessionId, cwd, shell, cols, rows }).catch((e) => {
       logger.error("Failed to spawn terminal:", e);
       terminal.write(`\r\nError: ${e}\r\n`);
     });

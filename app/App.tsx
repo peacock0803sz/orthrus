@@ -132,7 +132,12 @@ function App() {
           right={
             <Pane>
               {projectPath && !exited ? (
-                <Terminal sessionId={sessionId} cwd={projectPath} onExit={handleExit} />
+                <Terminal
+                  sessionId={sessionId}
+                  cwd={projectPath}
+                  shell={effectiveConfig?.terminal.shell}
+                  onExit={handleExit}
+                />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
                   {exited ? "Terminal session ended" : "Select a project to start terminal"}

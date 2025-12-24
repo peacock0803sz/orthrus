@@ -138,6 +138,7 @@ function App() {
                   shell={effectiveConfig.terminal.shell}
                   fontFamily={effectiveConfig.terminal.font_family}
                   fontSize={effectiveConfig.terminal.font_size}
+                  colorScheme={effectiveConfig.terminal.color_scheme}
                   onExit={handleExit}
                 />
               ) : (

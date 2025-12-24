@@ -1,14 +1,57 @@
-import { useEffect, useRef, useCallback } from "react";
-import { Terminal as XTerm } from "@xterm/xterm";
+import { useEffect, useRef, useCallback, useMemo } from "react";
+import { Terminal as XTerm, ITheme } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { logger } from "../utils/logger";
+import { useSystemTheme } from "../hooks/useSystemTheme";
+import type { ColorScheme } from "../types/config";
 import "@xterm/xterm/css/xterm.css";
 
 // デフォルトフォント設定
 const DEFAULT_FONT_FAMILY = 'Menlo, Monaco, "Courier New", monospace';
 const DEFAULT_FONT_SIZE = 14;
+
+// OSテーマに応じたデフォルトカラースキーム
+const DARK_THEME: ITheme = {
+  background: "#1e1e1e",
+  foreground: "#d4d4d4",
+  cursor: "#d4d4d4",
+};
+
+const LIGHT_THEME: ITheme = {
+  background: "#ffffff",
+  foreground: "#1e1e1e",
+  cursor: "#1e1e1e",
+};
+
+// ColorScheme（snake_case）をxterm.js ITheme（camelCase）に変換
+function mapToXtermTheme(scheme: ColorScheme): ITheme {
+  return {
+    background: scheme.background,
+    foreground: scheme.foreground,
+    cursor: scheme.cursor,
+    cursorAccent: scheme.cursor_accent,
+    selectionBackground: scheme.selection_background,
+    selectionForeground: scheme.selection_foreground,
+    black: scheme.black,
+    red: scheme.red,
+    green: scheme.green,
+    yellow: scheme.yellow,
+    blue: scheme.blue,
+    magenta: scheme.magenta,
+    cyan: scheme.cyan,
+    white: scheme.white,
+    brightBlack: scheme.bright_black,
+    brightRed: scheme.bright_red,
+    brightGreen: scheme.bright_green,
+    brightYellow: scheme.bright_yellow,
+    brightBlue: scheme.bright_blue,
+    brightMagenta: scheme.bright_magenta,
+    brightCyan: scheme.bright_cyan,
+    brightWhite: scheme.bright_white,
+  };
+}
 
 interface TerminalProps {
   sessionId: string;
@@ -16,14 +59,26 @@ interface TerminalProps {
   shell?: string;
   fontFamily?: string;
   fontSize?: number;
+  colorScheme?: ColorScheme;
   onExit?: (code: number) => void;
 }
 
-export function Terminal({ sessionId, cwd, shell, fontFamily, fontSize, onExit }: TerminalProps) {
+export function Terminal({ sessionId, cwd, shell, fontFamily, fontSize, colorScheme, onExit }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const resizeTimeoutRef = useRef<number | null>(null);
+
+  // OSのLight/Darkテーマを取得
+  const systemTheme = useSystemTheme();
+
+  // 実際に使用するテーマを決定
+  const effectiveTheme = useMemo<ITheme>(() => {
+    if (colorScheme) {
+      return mapToXtermTheme(colorScheme);
+    }
+    return systemTheme === "dark" ? DARK_THEME : LIGHT_THEME;
+  }, [colorScheme, systemTheme]);
 
   // PTYにデータを送信
   const sendData = useCallback(
@@ -67,11 +122,7 @@ export function Terminal({ sessionId, cwd, shell, fontFamily, fontSize, onExit }
       fontSize: fontSize ?? DEFAULT_FONT_SIZE,
       fontFamily: fontFamily ?? DEFAULT_FONT_FAMILY,
       scrollback: 10000,
-      theme: {
-        background: "#1e1e1e",
-        foreground: "#d4d4d4",
-        cursor: "#d4d4d4",
-      },
+      theme: effectiveTheme,
     });
 
     const fitAddon = new FitAddon();
@@ -138,6 +189,10 @@ export function Terminal({ sessionId, cwd, shell, fontFamily, fontSize, onExit }
   }, [sessionId]);
 
   return (
-    <div ref={containerRef} className="w-full h-full" style={{ backgroundColor: "#1e1e1e" }} />
+    <div
+      ref={containerRef}
+      className="w-full h-full"
+      style={{ backgroundColor: effectiveTheme.background || "#1e1e1e" }}
+    />
   );
 }

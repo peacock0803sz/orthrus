@@ -242,6 +242,33 @@ pub struct TerminalConfigOverride {
     pub color_scheme: Option<ColorScheme>,
 }
 
+impl TerminalConfigOverride {
+    /// theme_fileからカラースキームを解決
+    /// color_schemeが設定済みの場合はそのまま、
+    /// theme_fileが設定されている場合はファイルを読み込んでcolor_schemeに変換
+    pub fn resolve_color_scheme(&mut self) {
+        // color_schemeが既に設定されている場合はそのまま
+        if self.color_scheme.is_some() {
+            return;
+        }
+
+        // theme_fileが設定されている場合はファイルを読み込む
+        if let Some(ref theme_file) = self.theme_file {
+            // DevConfigのtheme_fileは絶対パスを想定
+            let theme_path = PathBuf::from(theme_file);
+
+            match load_theme_file(&theme_path) {
+                Ok(scheme) => {
+                    self.color_scheme = Some(scheme);
+                }
+                Err(e) => {
+                    eprintln!("テーマファイル読み込みエラー: {}", e);
+                }
+            }
+        }
+    }
+}
+
 fn default_auto_start_sphinx() -> bool {
     true
 }

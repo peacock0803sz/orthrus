@@ -72,7 +72,12 @@ fn load_config() -> Result<Config, String> {
 /// ローカル開発用設定を読み込む
 #[tauri::command]
 fn load_dev_config() -> Option<DevConfig> {
-    DevConfig::load()
+    let mut config = DevConfig::load()?;
+    // テーマファイルがある場合は解決
+    if let Some(ref mut terminal) = config.config.as_mut().and_then(|c| c.terminal.as_mut()) {
+        terminal.resolve_color_scheme();
+    }
+    Some(config)
 }
 
 /// sphinx-autobuildを起動
